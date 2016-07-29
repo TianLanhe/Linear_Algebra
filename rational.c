@@ -77,9 +77,11 @@ Status opp(Rational *des,Rational sou){
 	return OK;
 }
 Status inv(Rational *des,Rational sou){
+	int symbol;
 	if(sou.denominator <= 0 || sou.numerator == 0)return ERROE;
-	des->numerator=sou.denominator;			//如果分母小于等于0，表示出错了，因为分母不能为0
-	des->denominator=sou.numerator;			//且前面规定了如果分数为负，规定分子为负，分母为正
+	symbol=sou.denominator*sou.numerator<0?-1:1;
+	des->numerator=sou.denominator*symbol;			//如果分母小于等于0，表示出错了，因为分母不能为0
+	des->denominator=sou.numerator*symbol;			//且前面规定了如果分数为负，规定分子为负，分母为正
 	des->friaction=des->numerator*1.0/des->denominator;	//分子不能为0
 	return OK;								//以上三种情况表示错误
 }
