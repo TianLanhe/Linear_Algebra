@@ -169,3 +169,4 @@ Status isfinite(Rational sou){
 	while(denominator%5 == 0)denominator/=5;
 	return denominator == 1?true:false;
 }
+
