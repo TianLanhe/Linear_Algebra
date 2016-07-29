@@ -58,3 +58,4 @@ Status assign(Rational *des,int numerator,int denominator);
 Status assign_f(Rational *des,double num);
 //给分数赋值，将小数或者整数转化为分数
 #endif
+
