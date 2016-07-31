@@ -20,7 +20,7 @@ Status copyMatrix(Matrix *des,Matrix sou);
 Status matrixAdd(Matrix *des,Matrix sou1,Matrix sou2);
 //矩阵加法，若sou1与sou2行列数相同，则进行相加，否则返回ERROR
 Status matrixSub(Matrix *des,Matrix sou1,Matrix sou2);
-//矩阵减法，若sou1与sou2行列数相同，则进行想减，否则返回ERROR
+//矩阵减法，若sou1与sou2行列数相同，则进行相减，否则返回ERROR
 Status matrixMul_scalar_f(Matrix *des,Matrix sou1,double num);
 //矩阵数乘(与小数)
 Status matrixMul_scalar_r(Matrix *des,Matrix sou1,Rational rat);
@@ -44,13 +44,21 @@ int matrixRank(Matrix sou);
 Status matrixSimplest(Matrix *des,Matrix sou);
 //求矩阵的最简形，储存在des中
 Status matrixCanRepre(Matrix sou1,Matrix sou2);
-//判断矩阵sou1能否被sou2线性表示，能返回true，否返回false。若sou1与sou2行数不同，返回ERROR
+//判断矩阵sou2能否由sou1线性表示，能返回true，否返回false。若sou1与sou2行数不同，返回ERROR
 Status matrixIsEqual(Matrix sou1,Matrix sou2);
 //判断两个矩阵是否等价，即sou1能被sou2线性表示且sou2能被sou1线性表示
 Status matrixIsRelevant(Matrix sou);
 //判断矩阵是否线性相关。是否线性相关的充要条件是向量组的秩小于列数
-
 Status matrixMaxIrre(Matrix *des,Matrix sou);
+//求sou的一个最大线性无关组
+Status matrixHomogen(Matrix *des,Matrix sou);
+//求齐次线性方程组的通解
+Status matrixNoHomogen(Matrix *des,Matrix sou);
+//求非齐次线性方程组的通解
+Status matrixHomogenBasic(Matrix *des,Matrix sou);
+//求齐次线性方程组的基础解系
+Status matrixNoHomogenBasic(Matrix *des,Matrix sou);
+//求非齐次线性方程组的基础解系
 
 Status initMatrix(Matrix *mat,int row,int column){
 	int i,j;
@@ -471,6 +479,239 @@ Status matrixIsRelevant(Matrix sou){
 	if(rank == ERROR)return ERROR;
 	return rank<sou.column?true:false;
 }
+Status matrixMaxIrre(Matrix *des,Matrix sou){
+	Matrix temp;
+	int *column;
+	int i,j;
+	int rank,count;
+	if(initMatrix(&temp,0,0) == ERROR)return ERROR;
+	if(matrixSimplest(&temp,sou) == ERROR)return ERROR;
+	column=(int*)malloc(sizeof(int)*temp.column);
+	if(column == NULL)return ERROR;
+	rank=0;
+	for(i=0;i<temp.column;i++)column[i]=0;
+	for(i=0;i<temp.row;i++){
+		for(j=0;j<temp.column;j++){
+			if(ratcmp_f(temp.matrix[i][j],0) != 0){
+				column[j]=1;
+				rank++;
+				break;
+			}
+		}
+	}
+	destroyMatrix(&temp);
+	temp=*des;
+	if(initMatrix(des,sou.row,rank) == ERROR)return ERROR;
+	for(j=0;j<sou.column;j++){
+		if(column[j] == 1){
+			for(i=0;i<sou.row;i++){
+				if(assign(&des->matrix[i][j],sou.matrix[i][j].numerator,sou.matrix[i][j].denominator) == ERROR)
+					return ERROR;
+			}
+		}
+	}
+	free(column);
+	destroyMatrix(&temp);
+	return OK;
+}
+Status matrixHomogen(Matrix *des,Matrix sou){
+	Matrix temp,t;
+	int *column,*c;
+	int *row;
+	int i,j;
+	int rank;
+	int count;
+	if(initMatrix(&temp,0,0) == ERROR)return ERROR;
+	if(initMatrix(&t,sou.column,sou.column) == ERROR)return ERROR;
+	if(matrixSimplest(&temp,sou) == ERROR)return ERROR;		//求最简形进行其他操作
+	rank=matrixRank(sou);									//计算秩，要的列数=colum-rank
+	if(rank == ERROR)return ERROR;
+	if(rank < sou.column){									//有无限多解
+		column=(int*)malloc(sizeof(int)*rank);
+		if(column == NULL)return ERROR;
+		row=(int*)malloc(sizeof(int)*rank);						//用来记录每行第一个非零数的行和列
+		if(row == NULL)return ERROR;
+		c=(int*)malloc(sizeof(int)*temp.column);				//记录那一列要，那一列不要
+		if(c == NULL)return ERROR;
+		for(i=0;i<temp.column;i++)c[i]=1;
+		count=0;
+		for(i=0;i<temp.row;i++){
+			for(j=0;j<temp.column;j++){
+				if(ratcmp_f(temp.matrix[i][j],0) != 0){
+					c[j]=0;									//确定哪些列不要
+					row[count]=i;							//将每行第一个非零数的行和列存下来
+					column[count]=j;
+					count++;
+					break;
+				}
+			}
+		}													//将需要的列复制到[column][column]的矩阵中
+		for(i=0;i<temp.row;i++){							//并将每个元素取反
+			for(j=0;j<temp.column;j++){
+				if(c[j] == 1){
+					if(assign(&t.matrix[i][j],-temp.matrix[i][j].numerator,temp.matrix[i][j].denominator) == ERROR)
+						return ERROR;
+				}
+			}
+		}
+		count--;
+		for(j=temp.column;j>=0;j--){						//进行行交换
+			if(j == column[count]){
+				if(column[count] != row[count]){
+					Rational swap;
+					for(i=0;i<temp.column;i++){
+						if(assign(&swap,t.matrix[column[count]][i].numerator,t.matrix[column[count]][i].denominator) == ERROR)
+							return ERROR;
+						if(assign(&t.matrix[column[count]][i],t.matrix[row[count]][i].numerator,t.matrix[row[count]][i].denominator) == ERROR)
+							return ERROR;
+						if(assign(&t.matrix[row[count]][i],swap.numerator,swap.denominator) == ERROR)
+							return ERROR;
+					}
+				}
+				count--;
+			}
+		}
+		for(i=0;i<t.row;i++)									//补1
+			for(j=0;j<t.column;j++)
+				if(i == j)
+					if(assign(&t.matrix[i][j],1,1) == ERROR)
+						return ERROR;
+		destroyMatrix(&temp);
+		temp=*des;
+		if(initMatrix(des,t.row,sou.column-rank) == ERROR)return ERROR;
+		count=0;
+		for(j=0;j<t.column;j++){
+			if(c[j] == 0)continue;
+			for(i=0;i<t.row;i++){
+				if(assign(&des->matrix[i][count],t.matrix[i][j].numerator,t.matrix[i][j].denominator) == ERROR)
+						return ERROR;
+			}
+			count++;
+		}
+		free(column);
+		free(row);
+		free(c);
+		destroyMatrix(&temp);
+		destroyMatrix(&t);
+		return OK;
+	}else;												//有唯一解,解多元一次方程
+}
+Status matrixNoHomogen(Matrix *des,Matrix sou){
+	Matrix temp,t;
+	int *column,*c;
+	int *row;
+	int i,j;
+	int rank;
+	int count;
+	int flag;
+	if(initMatrix(&temp,0,0) == ERROR)return ERROR;
+	if(initMatrix(&t,sou.column-1,sou.column) == ERROR)return ERROR;
+	if(matrixSimplest(&temp,sou) == ERROR)return ERROR;		//求最简形进行其他操作
+	rank=matrixRank(sou);									//计算秩，要的列数=colum-rank
+	if(rank == ERROR)return ERROR;
+	flag=true;
+	for(j=0;j<temp.column;j++){								//判断R(A)是否等于R(A,b)
+		if(ratcmp_f(temp.matrix[temp.row-1][j],0) != 0){
+			if(j == temp.column-1)flag=false;
+			else break;
+		}
+	}
+	if(flag == true){									//有解
+		if(rank  <  temp.column){						//有无限多解
+			column=(int*)malloc(sizeof(int)*rank);
+			if(column == NULL)return ERROR;
+			row=(int*)malloc(sizeof(int)*rank);			//用来记录每行第一个非零数的行和列
+			if(row == NULL)return ERROR;
+			c=(int*)malloc(sizeof(int)*temp.column);	//记录那一列要，那一列不要
+			if(c == NULL)return ERROR;
+			for(i=0;i<temp.column;i++)c[i]=1;
+			count=0;
+			for(i=0;i<temp.row;i++){
+				for(j=0;j<temp.column;j++){
+					if(ratcmp_f(temp.matrix[i][j],0) != 0){
+						c[j]=0;									//确定哪些列不要
+						row[count]=i;							//将每行第一个非零数的行和列存下来
+						column[count]=j;
+						count++;
+						break;
+					}
+				}
+			}
+			for(i=0;i<temp.row-1;i++){					//将需要的列复制到[column][column]的矩阵中
+				for(j=0;j<temp.column;j++){				//并将每个元素(除最后一列)取反
+					if(c[j] == 1){
+						if(assign(&t.matrix[i][j],-temp.matrix[i][j].numerator,temp.matrix[i][j].denominator) == ERROR)
+							return ERROR;
+						if(j == temp.column-1){
+							if(opp(&t.matrix[i][j],t.matrix[i][j]) == ERROR)
+								return ERROR;
+						}
+					}
+				}
+			}
+			count--;
+			for(j=temp.column;j>=0;j--){						//进行行交换
+				if(j == column[count]){
+					if(column[count] != row[count]){
+						Rational swap;
+						for(i=0;i<temp.column;i++){
+							if(assign(&swap,t.matrix[column[count]][i].numerator,t.matrix[column[count]][i].denominator) == ERROR)
+								return ERROR;
+							if(assign(&t.matrix[column[count]][i],t.matrix[row[count]][i].numerator,t.matrix[row[count]][i].denominator) == ERROR)
+								return ERROR;
+							if(assign(&t.matrix[row[count]][i],swap.numerator,swap.denominator) == ERROR)
+								return ERROR;
+						}
+					}
+					count--;
+				}
+			}
+			for(i=0;i<t.row;i++)						//补1
+				for(j=0;j<t.column;j++)
+					if(i == j)
+						if(assign(&t.matrix[i][j],1,1) == ERROR)
+							return ERROR;
+			destroyMatrix(&temp);
+			temp=*des;
+			if(initMatrix(des,t.row,sou.column-rank) == ERROR)return ERROR;
+			count=0;
+			for(j=0;j<t.column;j++){
+				if(c[j] == 0)continue;
+				for(i=0;i<t.row;i++){
+					if(assign(&des->matrix[i][count],t.matrix[i][j].numerator,t.matrix[i][j].denominator) == ERROR)
+							return ERROR;
+				}
+				count++;
+			}
+			free(column);
+			free(row);
+			free(c);
+			destroyMatrix(&temp);
+			destroyMatrix(&t);
+			return OK;
+		}else ;											//有唯一解
+	}else printf("无解\n");												//无解
+}
+Status matrixHomogenBasic(Matrix *des,Matrix sou){
+	return matrixHomogen(des,sou);
+}
+Status matrixNoHomogenBasic(Matrix *des,Matrix sou){
+	Matrix temp;
+	Matrix tmp;
+	int i,j;
+	if(initMatrix(&temp,0,0) == ERROR)return ERROR;
+	if(matrixNoHomogen(&temp,sou) == ERROR)return ERROR;
+	tmp=*des;
+	if(initMatrix(des,temp.row,temp.column-1) == ERROR)return ERROR;
+	for(i=0;i<temp.row;i++)
+		for(j=0;j<temp.column-1;j++)
+			if(assign(&des->matrix[i][j],temp.matrix[i][j].numerator,temp.matrix[i][j].denominator) == ERROR)
+				return ERROR;
+	destroyMatrix(&tmp);
+	destroyMatrix(&temp);
+	return OK;
+}
+
 int main(){
 	Matrix mat1;
 	Matrix mat2;
@@ -479,32 +720,12 @@ int main(){
 	initMatrix(&mat1,0,0);
 	initMatrix(&mat2,0,0);
 	initMatrix(&mat3,0,0);
-	scanf("%d",&i);
-	if(i ==1){
-		scanf("%d%d",&i,&j);
-		initMatrix(&mat1,i,j);
-		getmatrix(&mat1);
-		scanf("%d%d",&i,&j);
-		initMatrix(&mat2,i,j);
-		getmatrix(&mat2);
-		printm(mat1);
-		printm(mat2);
-		if(matrixMul(&mat3,mat1,mat2) == ERROR)printf("error\n");
-		else printm(mat3);
-	}else if(i == 2){
-		scanf("%d%d",&i,&j);
-		initMatrix(&mat1,i,j);
-		getmatrix(&mat1);
-		printm(mat1);
-		if(matrixInv(&mat3,mat1) == ERROR)printf("error\n");
-		else printm(mat3);
-	}else if(i ==3){
-		scanf("%d%d",&i,&j);
-		initMatrix(&mat1,i,j);
-		getmatrix(&mat1);
-		printm(mat1);
-		if(matrixSimplest(&mat3,mat1) == ERROR)printf("error\n");
-		else printm(mat3);
-	}
+	
+	initMatrix(&mat1,3,4);
+	getmatrix(&mat1);
+	matrixSimplest(&mat2,mat1);
+	printm(mat2);
+	matrixHomogenBasic(&mat2,mat1);
+	printm(mat2);
 	return 0;
 }
