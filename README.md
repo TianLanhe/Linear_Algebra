@@ -87,8 +87,9 @@ Status div_f(Rational *des,Rational sou1,double num);
 ###其他操作：
 1. 打印
 2. 比较
+3. 转化为小数
 3. 判断是否是有限小数
-4. 转化为小数
+4. 判断是否是整数
 
 ```c
 Status printr(Rational sou);	//分数形式打印,不换行
@@ -113,6 +114,11 @@ double tof(Rational sou);		//求小数
 Status isfinite(Rational sou);	//有限小数
 ```
 若分母的质因子中只含有2和5，则说明分数是有限小数
+
+```c
+Status isInt(Rational sou);	//是否整数
+```
+因为人为规定0的表示为分母是1，其他分数若是整数，必能化简到分母为1的情况。因此，只需判断分母是否为1即可判断是否是整数
 
 Matrix:
 --------
