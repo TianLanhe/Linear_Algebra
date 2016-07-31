@@ -57,5 +57,7 @@ Status assign(Rational *des,int numerator,int denominator);
 //给分数赋值，相当于初始化
 Status assign_f(Rational *des,double num);
 //给分数赋值，将小数或者整数转化为分数
+Status isInt(Rational sou);
+//判断分数是否是整数
 #endif
 
