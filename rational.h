@@ -1,6 +1,7 @@
 #ifndef rational_h
 #define rational_h
 #include <stdio.h>
+#include <math.h>
 #define Status int
 #define true 1
 #define false 0
@@ -51,7 +52,7 @@ Status putsr_f(Rational sou);
 //以小数形式打印sou，包括换行
 int maxfactor(Rational sou);
 //求分子分母的最大公因数
-Status isfinite(Rational sou);
+Status isfinite_r(Rational sou);
 //判断分数是否是有限小数
 Status assign(Rational *des,int numerator,int denominator);
 //给分数赋值，相当于初始化
@@ -59,5 +60,5 @@ Status assign_f(Rational *des,double num);
 //给分数赋值，将小数或者整数转化为分数
 Status isInt(Rational sou);
 //判断分数是否是整数
+Status sqrt_r(Rational *des,Rational sou);
 #endif
-
