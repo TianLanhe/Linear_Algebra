@@ -34,7 +34,7 @@ typedef struct RATIONAL{
 Status assign(Rational *des,int numerator,int denominator);	//赋值
 Status assign_f(Rational *des,double num);
 ```
-赋值分分数赋值和小数赋值，规定分母永远为正数，以分子的正负作为整个分数的正负。若分数为0，规定则分子为0，分母为1。小数赋值中通过四舍五入消除转换的误差，精确到0.0001，结果转换为最简分数
+赋值分分数赋值和小数赋值，规定分母永远为正数，以分子的正负作为整个分数的正负。若分数为0，规定则分子为0，分母为1。小数赋值中通过四舍五入消除转换的误差，精确到`0.001`，结果转换为最简分数
 
 ```c
 int maxfactor(Rational sou);		//最大公因数
@@ -51,6 +51,7 @@ Status simplify(Rational *sou);		//化简
 1. 求相反数
 1. 求倒数
 1. 求幂
+2. 开平方
 1. 加法
 2. 减法
 3. 乘法
@@ -71,6 +72,10 @@ Status power(Rational *des,Rational sou,int n);		//求幂
 ```
 指数n必须是整数，分n等于0，大于0，小于0三种情况。若n等于0时，原分数不能为0(0的0次方是非法的)，否则返回ERROR，其他返回1。若n不等于0时，用乘法操作累乘，若n小于0，还要求其倒数
 
+```c
+Status sqrt_r(Rational *des,Rational sou);
+```
+将sou开平方，精度取决于`assign_f`的精度，因此精确到0.001.
 
 ```c
 Status add_r(Rational *des,Rational sou1,Rational sou2);
@@ -111,7 +116,7 @@ double tof(Rational sou);		//求小数
 虽然可以直接查看结构体成员，不过还是封装起来用函数操作比较好。
 
 ```c
-Status isfinite(Rational sou);	//有限小数
+Status isfinite_r(Rational sou);	//有限小数
 ```
 若分母的质因子中只含有2和5，则说明分数是有限小数
 
