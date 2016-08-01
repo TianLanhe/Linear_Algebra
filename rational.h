@@ -5,7 +5,7 @@
 #define true 1
 #define false 0
 #define OK 0
-#define ERROE -1
+#define ERROR -1
 typedef struct RATIONAL{
 	int numerator;				//分子
 	int denominator;			//分母
