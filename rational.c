@@ -1,6 +1,6 @@
 #include "rational.h"
 Status assign(Rational *des,int numerator,int denominator){
-	if(!denominator)return ERROE;				//分母不能为0
+	if(!denominator)return ERROR;				//分母不能为0
 	if(numerator*denominator < 0){				//规定若分数为负数，则分子为负，分母为正
 		denominator=denominator>0?denominator:-denominator;
 		numerator=numerator<0?numerator:-numerator;
@@ -12,7 +12,7 @@ Status assign(Rational *des,int numerator,int denominator){
 	if(des->numerator == 0)des->denominator=1;
 	else des->denominator=denominator;
 	des->friaction=numerator*1.0/denominator;
-	if(simplify(des) == ERROE)return ERROE;
+	if(simplify(des) == ERROR)return ERROR;
 	return OK;
 }
 Status assign_f(Rational *des,double num){
@@ -78,7 +78,7 @@ Status opp(Rational *des,Rational sou){
 }
 Status inv(Rational *des,Rational sou){
 	int symbol;
-	if(sou.denominator <= 0 || sou.numerator == 0)return ERROE;
+	if(sou.denominator <= 0 || sou.numerator == 0)return ERROR;
 	symbol=sou.denominator*sou.numerator<0?-1:1;
 	des->numerator=sou.denominator*symbol;			//如果分母小于等于0，表示出错了，因为分母不能为0
 	des->denominator=sou.numerator*symbol;			//且前面规定了如果分数为负，规定分子为负，分母为正
@@ -104,7 +104,7 @@ Status mul_r(Rational *des,Rational sou1,Rational sou2){
 }
 Status div_r(Rational *des,Rational sou1,Rational sou2){
 	Rational temp;
-	if(inv(&temp,sou2) == ERROE)return ERROE;	//如果分子为0，无法求逆，自然无法相除
+	if(inv(&temp,sou2) == ERROR)return ERROR;	//如果分子为0，无法求逆，自然无法相除
 	return mul_r(des,sou1,temp);
 }
 int ratcmp_r(Rational sou1,Rational sou2){
@@ -129,28 +129,28 @@ int ratcmp_f(Rational sou1,double num){
 }
 Status add_f(Rational *des,Rational sou1,double num){
 	Rational temp;
-	if(assign_f(&temp,num) == ERROE)return ERROE;
+	if(assign_f(&temp,num) == ERROR)return ERROR;
 	return add_r(des,sou1,temp);
 }
 Status sub_f(Rational *des,Rational sou1,double num){
 	Rational temp;
-	if(assign_f(&temp,num) == ERROE)return ERROE;
+	if(assign_f(&temp,num) == ERROR)return ERROR;
 	return sub_r(des,sou1,temp);
 }
 Status mul_f(Rational *des,Rational sou1,double num){
 	Rational temp;
-	if(assign_f(&temp,num) == ERROE)return ERROE;
+	if(assign_f(&temp,num) == ERROR)return ERROR;
 	return mul_r(des,sou1,temp);
 }
 Status div_f(Rational *des,Rational sou1,double num){
 	Rational temp;
-	if(assign_f(&temp,num) == ERROE)return ERROE;
+	if(assign_f(&temp,num) == ERROR)return ERROR;
 	return div_r(des,sou1,temp);
 }
 Status power(Rational *des,Rational sou,int n){
 	int i;
 	if(n == 0){
-		if(sou.numerator == 0)return ERROE;
+		if(sou.numerator == 0)return ERROR;
 		else return assign(des,1,1);
 	}else if(n > 0){
 		assign(des,sou.numerator,sou.denominator);
@@ -158,7 +158,7 @@ Status power(Rational *des,Rational sou,int n){
 	}else{
 		assign(des,sou.numerator,sou.denominator);
 		for(i=1;i<-n;i++)mul_r(des,*des,sou);
-		if(!inv(des,*des))return ERROE;
+		if(!inv(des,*des))return ERROR;
 	}
 	return OK;
 }
