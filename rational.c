@@ -1,7 +1,7 @@
 #include "rational.h"
 Status assign(Rational *des,int numerator,int denominator){
 	if(!denominator)return ERROR;				//分母不能为0
-	if(numerator*denominator < 0){				//规定若分数为负数，则分子为负，分母为正
+	if(numerator>0&&denominator<0 || numerator<0&&denominator>0){	//规定若分数为负数，则分子为负，分母为正
 		denominator=denominator>0?denominator:-denominator;
 		numerator=numerator<0?numerator:-numerator;
 	}else{
