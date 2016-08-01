@@ -76,15 +76,15 @@ Status opp(Rational *des,Rational sou){
 	des->friaction=des->numerator*1.0/des->denominator;
 	return OK;
 }
-Status inv(Rational *des,Rational sou){
-	int symbol;
-	if(sou.denominator <= 0 || sou.numerator == 0)return ERROR;
-	symbol=sou.denominator*sou.numerator<0?-1:1;
-	des->numerator=sou.denominator*symbol;			//如果分母小于等于0，表示出错了，因为分母不能为0
-	des->denominator=sou.numerator*symbol;			//且前面规定了如果分数为负，规定分子为负，分母为正
-	des->friaction=des->numerator*1.0/des->denominator;	//分子不能为0
-	return OK;								//以上三种情况表示错误
-}
+Status inv(Rational *des,Rational sou){ 
+ 	int symbol; 
+ 	if(sou.denominator <= 0 || sou.numerator == 0)return ERROR; 
+ 	symbol=sou.denominator*sou.numerator<0?-1:1; 
+ 	des->numerator=sou.denominator*symbol;			//如果分母小于等于0，表示出错了，因为分母不能为0 
+ 	des->denominator=sou.numerator*symbol;			//且前面规定了如果分数为负，规定分子为负，分母为正 
+ 	des->friaction=des->numerator*1.0/des->denominator;	//分子不能为0 
+	return OK;								//以上三种情况表示错误 
+} 
 Status add_r(Rational *des,Rational sou1,Rational sou2){
 	int numerator,denominator;
 	numerator=sou1.numerator*sou2.denominator+sou2.numerator*sou1.denominator;
@@ -111,21 +111,17 @@ int ratcmp_r(Rational sou1,Rational sou2){
 	double result;
 	double abs_result;
 	result=sou1.friaction-sou2.friaction;
-	if(result > 0)abs_result=result;
-	else abs_result=-result;
+	abs_result=result>0?result:-result;
 	if(abs_result <= 1e-6)return 0;
-	else if(result < 0)return -1;
-	else return 1;
+	else return result;
 }
 int ratcmp_f(Rational sou1,double num){
 	double result;
 	double abs_result;
 	result=sou1.friaction-num;
-	if(result > 0)abs_result=result;
-	else abs_result=-result;
+	abs_result=result>0?result:-result;
 	if(abs_result <= 1e-6)return 0;
-	else if(result < 0)return -1;
-	else return 1;
+	else return result;
 }
 Status add_f(Rational *des,Rational sou1,double num){
 	Rational temp;
@@ -162,7 +158,7 @@ Status power(Rational *des,Rational sou,int n){
 	}
 	return OK;
 }
-Status isfinite(Rational sou){
+Status isfinite_r(Rational sou){
 	int denominator;
 	int factor;
 	if(sou.numerator == 0)return true;
@@ -173,4 +169,9 @@ Status isfinite(Rational sou){
 }
 Status isInt(Rational sou){
 	return sou.numerator==1?true:false;
+}
+Status sqrt_r(Rational *des,Rational sou){
+	double sqr;
+	sqr=sqrt(sou.friaction);
+	return assign_f(des,sqr);
 }
