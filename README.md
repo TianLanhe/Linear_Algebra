@@ -22,7 +22,7 @@ typedef struct RATIONAL{
 #define true 1          //真
 #define false 0         //假
 #define OK 0            //正确返回
-#define ERROE -1        //错误返回
+#define ERROR -1        //错误返回
 ```
 
 ###基本操作：
