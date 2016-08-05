@@ -113,7 +113,8 @@ int ratcmp_r(Rational sou1,Rational sou2){
 	result=sou1.friaction-sou2.friaction;
 	abs_result=result>0?result:-result;
 	if(abs_result <= 1e-6)return 0;
-	else return result;
+	else if(result > 0)return 1;
+	else return -1;
 }
 int ratcmp_f(Rational sou1,double num){
 	double result;
@@ -121,7 +122,8 @@ int ratcmp_f(Rational sou1,double num){
 	result=sou1.friaction-num;
 	abs_result=result>0?result:-result;
 	if(abs_result <= 1e-6)return 0;
-	else return result;
+	else if(result > 0)return 1;
+	else return -1;
 }
 Status add_f(Rational *des,Rational sou1,double num){
 	Rational temp;
