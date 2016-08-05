@@ -52,13 +52,14 @@ Status matrixIsRelevant(Matrix sou);
 Status matrixMaxIrre(Matrix *des,Matrix sou);
 //求sou的一个最大线性无关组
 Status matrixHomogen(Matrix *des,Matrix sou);
-//求齐次线性方程组的通解
+//求齐次线性方程组的通解,返回-2表示只有唯一解
 Status matrixNoHomogen(Matrix *des,Matrix sou);
-//求非齐次线性方程组的通解
+//求非齐次线性方程组的通解,返回-2表示只有唯一解，若无解返回ERROR(还有其他情况可能返回ERROR)
 Status matrixHomogenBasic(Matrix *des,Matrix sou);
-//求齐次线性方程组的基础解系
+//求齐次线性方程组的基础解系,返回-2表示只有唯一解
 Status matrixNoHomogenBasic(Matrix *des,Matrix sou);
-//求非齐次线性方程组的基础解系
+//求非齐次线性方程组的基础解系,返回-2表示只有唯一解，若无解返回ERROR(还有其他情况可能返回ERROR)
+Status given(Matrix *des,Matrix sou);
 
 Status initMatrix(Matrix *mat,int row,int column){
 	int i,j;
@@ -83,7 +84,7 @@ Status initMatrix(Matrix *mat,int row,int column){
 	return OK;
 }
 Status destroyMatrix(Matrix *mat){
-	int i,j;
+	int i;
 	if(mat->matrix){
 		for(i=0;i<mat->row;i++){
 			free(mat->matrix[i]);
@@ -341,7 +342,6 @@ Status matrixAdj(Matrix *des,Matrix sou){
 	return OK;
 }
 Status matrixInv(Matrix *des,Matrix sou1){
-	int i,j;
 	Rational temp;
 	Matrix tmp;
 	Matrix adj;
@@ -359,10 +359,13 @@ Status matrixInv(Matrix *des,Matrix sou1){
 Status matrixPow(Matrix *des,Matrix sou,int n){
 	int abs_n;
 	int i;
+	Matrix temp;
 	abs_n=n>0?n:-n;
+	temp=*des;
 	if(n == 0){
 		if(getIdenMat(des,sou.row) == ERROR)return ERROR;
 	}else{
+		if(initMatrix(des,0,0) == ERROR)return ERROR;
 		if(copyMatrix(des,sou) == ERROR)return ERROR;
 		for(i=1;i<abs_n;i++)
 			if(matrixMul(des,*des,sou) == ERROR)
@@ -371,6 +374,7 @@ Status matrixPow(Matrix *des,Matrix sou,int n){
 			if(matrixInv(des,*des) == ERROR)return ERROR;
 		}
 	}
+	destroyMatrix(&temp);
 	return OK;
 }
 Status matrixSimplest(Matrix *des,Matrix sou){
@@ -379,6 +383,7 @@ Status matrixSimplest(Matrix *des,Matrix sou){
 	Rational temp,temp2;
 	Matrix tmp;
 	tmp=*des;
+	if(initMatrix(des,0,0) == ERROR)return ERROR;
 	if(copyMatrix(des,sou) == ERROR)return ERROR;
 	for(i=0;i<sou.row;i++){
 		column=i;
@@ -483,7 +488,7 @@ Status matrixMaxIrre(Matrix *des,Matrix sou){
 	Matrix temp;
 	int *column;
 	int i,j;
-	int rank,count;
+	int rank;
 	if(initMatrix(&temp,0,0) == ERROR)return ERROR;
 	if(matrixSimplest(&temp,sou) == ERROR)return ERROR;
 	column=(int*)malloc(sizeof(int)*temp.column);
@@ -571,7 +576,7 @@ Status matrixHomogen(Matrix *des,Matrix sou){
 				count--;
 			}
 		}
-		for(i=0;i<t.row;i++)									//补1
+		for(i=0;i<t.row;i++)								//补1
 			for(j=0;j<t.column;j++)
 				if(i == j)
 					if(assign(&t.matrix[i][j],1,1) == ERROR)
@@ -594,7 +599,7 @@ Status matrixHomogen(Matrix *des,Matrix sou){
 		destroyMatrix(&temp);
 		destroyMatrix(&t);
 		return OK;
-	}else;												//有唯一解,解多元一次方程
+	}else return -2;									//有唯一解,解多元一次方程
 }
 Status matrixNoHomogen(Matrix *des,Matrix sou){
 	Matrix temp,t;
@@ -689,8 +694,8 @@ Status matrixNoHomogen(Matrix *des,Matrix sou){
 			destroyMatrix(&temp);
 			destroyMatrix(&t);
 			return OK;
-		}else ;											//有唯一解
-	}else printf("无解\n");												//无解
+		}else return -2;									//有唯一解
+	}else return ERROR;												//无解
 }
 Status matrixHomogenBasic(Matrix *des,Matrix sou){
 	return matrixHomogen(des,sou);
@@ -700,7 +705,8 @@ Status matrixNoHomogenBasic(Matrix *des,Matrix sou){
 	Matrix tmp;
 	int i,j;
 	if(initMatrix(&temp,0,0) == ERROR)return ERROR;
-	if(matrixNoHomogen(&temp,sou) == ERROR)return ERROR;
+	if((i=matrixNoHomogen(&temp,sou)) == ERROR)return ERROR;	//无解
+	else if(i == -2)return -2;									//有唯一解
 	tmp=*des;
 	if(initMatrix(des,temp.row,temp.column-1) == ERROR)return ERROR;
 	for(i=0;i<temp.row;i++)
@@ -717,15 +723,15 @@ int main(){
 	Matrix mat2;
 	Matrix mat3;
 	int i,j;
+
 	initMatrix(&mat1,0,0);
 	initMatrix(&mat2,0,0);
 	initMatrix(&mat3,0,0);
 	
-	initMatrix(&mat1,3,4);
-	getmatrix(&mat1);
-	matrixSimplest(&mat2,mat1);
-	printm(mat2);
-	matrixHomogenBasic(&mat2,mat1);
-	printm(mat2);
+	initMatrix(&mat2,3,5);
+	getmatrix(&mat2);
+	if((i=matrixNoHomogen(&mat2,mat2)) == ERROR)printf("无解\n");
+	else if(i == -2)printf("有唯一解\n");
+	else printm(mat2);
 	return 0;
 }
