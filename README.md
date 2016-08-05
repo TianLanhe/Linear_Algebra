@@ -108,7 +108,7 @@ Status putsr_f(Rational sou);	//小数形式打印，换行
 int ratcmp(Rational sou1,Rational sou2);	//比较两个分数
 int ratcmp_f(Rational sou1,double num);		//比较分数和小数
 ```
-比较两个分数的fraction大小。注意__小数不能直接判断是否等于0__，规定若其绝对值小于10e-6才等于0。其余情况返回`sou1.friaction-sou2.friaction`，即若大于0，返回正数，等于0返回0，小于0返回负数。但是函数定义返回类型是`int`，不太合理，有待改进。
+比较两个分数的fraction大小。注意__小数不能直接判断是否等于0__，规定若其绝对值小于10e-6才等于0。若前者大于后者，返回1，相等返回0，前者小于后者返回-1。但是函数定义返回类型是`int`，不太合理，有待改进。
 
 ```c
 double tof(Rational sou);		//求小数
