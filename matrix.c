@@ -60,6 +60,8 @@ Status matrixHomogenBasic(Matrix *des,Matrix sou);
 Status matrixNoHomogenBasic(Matrix *des,Matrix sou);
 //求非齐次线性方程组的基础解系,返回-2表示只有唯一解，若无解返回ERROR(还有其他情况可能返回ERROR)
 Status given(Matrix *des,Matrix sou);
+//求矩阵的特征值，放在des中，des为1*n的矩阵，n为不同特征值的个数。
+//采用穷举算法，穷举范围为-100到100，增量为0.1，有可能因为数的原因加减导致分数溢出，算法不稳定
 
 Status initMatrix(Matrix *mat,int row,int column){
 	int i,j;
@@ -717,21 +719,54 @@ Status matrixNoHomogenBasic(Matrix *des,Matrix sou){
 	destroyMatrix(&temp);
 	return OK;
 }
+Status given(Matrix *des,Matrix sou){
+	Matrix temp;
+	Matrix idenmat;
+	Rational result;
+	Rational tmp[10];
+	double i;
+	int count;
+	if(sou.row != sou.column)return ERROR;
+	if(initMatrix(&temp,0,0) == ERROR)return ERROR;
+	if(initMatrix(&idenmat,0,0) == ERROR)return ERROR;
+	if(initMatrix(&temp,0,0) == ERROR)return ERROR;
+	if(getIdenMat(&idenmat,sou.row) == ERROR)return ERROR;
+	count=0;
+	for(i=-100;i<=100;i+=0.1){
+		if(matrixMul_scalar_f(&temp,idenmat,i) == ERROR)return ERROR;
+		if(matrixSub(&temp,sou,temp) == ERROR)return ERROR;
+		if(getResult(&result,temp) == ERROR)return ERROR;
+		if(ratcmp_f(result,0) == 0){
+			if(assign_f(&tmp[count],i) == ERROR)return ERROR;
+			count++;
+		}
+	}
+	if(count == 0){
+		if(initMatrix(des,0,0) == ERROR)return ERROR;
+	}else{
+		int j;
+		destroyMatrix(des);
+		if(initMatrix(des,1,count) == ERROR)return ERROR;
+		for(j=0;j<count;j++)
+			if(assign(&des->matrix[0][j],tmp[j].numerator,tmp[j].denominator) == ERROR)
+				return ERROR;
+	}
+	destroyMatrix(&idenmat);
+	return OK;
+}
 
 int main(){
 	Matrix mat1;
 	Matrix mat2;
 	Matrix mat3;
-	int i,j;
 
 	initMatrix(&mat1,0,0);
 	initMatrix(&mat2,0,0);
 	initMatrix(&mat3,0,0);
 	
-	initMatrix(&mat2,3,5);
+	initMatrix(&mat2,4,4);
 	getmatrix(&mat2);
-	if((i=matrixNoHomogen(&mat2,mat2)) == ERROR)printf("无解\n");
-	else if(i == -2)printf("有唯一解\n");
-	else printm(mat2);
+	given(&mat1,mat2);
+	printm(mat1);
 	return 0;
 }
