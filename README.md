@@ -7,7 +7,7 @@
 Rational:
 --------
 
-###分数结构体：
+### 分数结构体：
 ```c
 typedef struct RATIONAL{
 	int numerator;				//分子
@@ -16,7 +16,7 @@ typedef struct RATIONAL{
 }Rational;
 ```
 
-###定义的宏：
+### 定义的宏：
 ```c
 #define Status int      //返回类型(状态)
 #define true 1          //真
@@ -25,7 +25,7 @@ typedef struct RATIONAL{
 #define ERROR -1        //错误返回
 ```
 
-###基本操作：
+### 基本操作：
 1. 初始化(赋值)
 2. 求公因数
 3. 化简
@@ -47,7 +47,7 @@ Status simplify(Rational *sou);		//化简
 化简操作直接在原分数上进行，会改变原分数的值
 
 
-###算术运算：
+### 算术运算：
 1. 求相反数
 1. 求倒数
 1. 求幂
@@ -89,7 +89,7 @@ Status div_f(Rational *des,Rational sou1,double num);
 ```
 每种运算分``分数与分数``和``分数与小数``两种计算形式(``小数和小数``先算完再转换)。
 
-###其他操作：
+### 其他操作：
 1. 打印
 2. 比较
 3. 转化为小数
